@@ -408,3 +408,43 @@ window.onload = () => {
     carregarGaleria();
     carregarMapaMental();
 };
+let slideAtual = 1;
+const TOTAL_IMAGENS = 120;
+
+function atualizarSlideNormal() {
+    const img = document.getElementById("slide-img");
+    const titulo = document.getElementById("slide-titulo");
+
+    if (!img || !titulo) return;
+
+    img.src = `${API}/assets/img/${slideAtual}.png`;
+    titulo.innerText = `Imagem ${slideAtual} / ${TOTAL_IMAGENS}`;
+}
+
+function proximoSlide() {
+    slideAtual++;
+
+    if (slideAtual > TOTAL_IMAGENS) {
+        slideAtual = 1;
+    }
+
+    atualizarSlideNormal();
+
+    if (document.getElementById("imagem-slide")) {
+        atualizarSlide();
+    }
+}
+
+function slideAnterior() {
+    slideAtual--;
+
+    if (slideAtual < 1) {
+        slideAtual = TOTAL_IMAGENS;
+    }
+
+    atualizarSlideNormal();
+
+    if (document.getElementById("imagem-slide")) {
+        atualizarSlide();
+    }
+}
