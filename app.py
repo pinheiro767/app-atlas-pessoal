@@ -18,7 +18,12 @@ DATA_FILE = os.path.join(BASE_DIR, "dados_estudo.json")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(AUDIOS_DIR, exist_ok=True)
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    static_folder="assets",
+    static_url_path="/assets"
+)
+
 CORS(app)
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
@@ -80,33 +85,49 @@ ESTRUTURAS = {
 }
 
 
+def dados_vazios():
+    return {
+        "fotos": [],
+        "mapa_mental": {
+            "titulo": "Mapa Mental Anatômico",
+            "nos": [],
+            "conexoes": []
+        }
+    }
+
+
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def carregar_dados():
     if not os.path.exists(DATA_FILE):
-        return {
-            "fotos": [],
-            "mapa_mental": {
-                "titulo": "Mapa Mental Anatômico",
-                "nos": [],
-                "conexoes": []
-            }
-        }
+        return dados_vazios()
 
     try:
         with open(DATA_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return {
-            "fotos": [],
-            "mapa_mental": {
+            dados = json.load(f)
+
+        if "fotos" not in dados:
+            dados["fotos"] = []
+
+        if "mapa_mental" not in dados:
+            dados["mapa_mental"] = {
                 "titulo": "Mapa Mental Anatômico",
                 "nos": [],
                 "conexoes": []
             }
-        }
+
+        if "nos" not in dados["mapa_mental"]:
+            dados["mapa_mental"]["nos"] = []
+
+        if "conexoes" not in dados["mapa_mental"]:
+            dados["mapa_mental"]["conexoes"] = []
+
+        return dados
+
+    except Exception:
+        return dados_vazios()
 
 
 def salvar_dados(dados):
@@ -115,11 +136,16 @@ def salvar_dados(dados):
 
 
 def adicionar_no(mapa, nome):
+    nome = str(nome).strip()
+
     if nome and nome not in mapa["nos"]:
         mapa["nos"].append(nome)
 
 
 def adicionar_conexao(mapa, origem, destino):
+    origem = str(origem).strip()
+    destino = str(destino).strip()
+
     if not origem or not destino:
         return
 
@@ -205,6 +231,7 @@ def gerar_audio_texto():
         return jsonify({"erro": "Texto vazio."}), 400
 
     limite = 4000
+
     partes = [
         texto[i:i + limite]
         for i in range(0, len(texto), limite)
@@ -279,31 +306,6 @@ def upload_foto():
         for conexao in lista_conexoes:
             adicionar_conexao(mapa, estrutura, conexao)
 
-    conexoes_automaticas = {
-        "Plexo Braquial": [
-            "Artéria Axilar",
-            "Escaleno Anterior",
-            "Escaleno Médio",
-            "Clavícula"
-        ],
-        "Linfonodos Axilares": [
-            "Veia Axilar",
-            "Peitoral Menor",
-            "Subescapular",
-            "Úmero"
-        ],
-        "Compartimentos da Mão": [
-            "Polegar",
-            "Metacarpos",
-            "Aponeurose Palmar",
-            "Retináculo dos Flexores"
-        ]
-    }
-
-    if estrutura in conexoes_automaticas:
-        for conexao in conexoes_automaticas[estrutura]:
-            adicionar_conexao(mapa, estrutura, conexao)
-
     salvar_dados(dados)
 
     return jsonify({
@@ -362,10 +364,11 @@ def receber_imagens():
         return jsonify({"erro": "Nenhuma imagem recebida."}), 400
 
     arquivos = request.files.getlist("imagens")
-    salvos = []
 
     dados = carregar_dados()
     mapa = dados["mapa_mental"]
+
+    salvos = []
 
     for arquivo in arquivos:
         if arquivo and allowed_file(arquivo.filename):
@@ -384,7 +387,14 @@ def receber_imagens():
                 "estrutura": nome_estrutura
             })
 
-            adicionar_no(mapa, nome_estrutura)
+            dados["fotos"].append({
+                "id": uuid.uuid4().hex,
+                "arquivo": novo_nome,
+                "estrutura": nome_estrutura,
+                "observacao": "Imagem enviada pelo usuário",
+                "data": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
+
             adicionar_conexao(mapa, "Imagens Recebidas", nome_estrutura)
 
     salvar_dados(dados)
@@ -399,15 +409,7 @@ def receber_imagens():
 
 @app.route("/limpar-estudo", methods=["DELETE"])
 def limpar_estudo():
-    dados = {
-        "fotos": [],
-        "mapa_mental": {
-            "titulo": "Mapa Mental Anatômico",
-            "nos": [],
-            "conexoes": []
-        }
-    }
-
+    dados = dados_vazios()
     salvar_dados(dados)
 
     return jsonify({"mensagem": "Dados de estudo apagados."})
