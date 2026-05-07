@@ -4,7 +4,9 @@ async function carregarGaleria() {
 
     grade.innerHTML = "";
 
-    // IMAGENS FIXAS 1.png até 60.png
+    // =========================
+    // IMAGENS FIXAS 1.png → 60.png
+    // =========================
 
     for (let i = 1; i <= 60; i++) {
 
@@ -14,7 +16,8 @@ async function carregarGaleria() {
 
         card.innerHTML = `
             <img 
-                src="assets/img/${i}.png"
+                src="${API}/assets/img/${i}.png"
+                alt="Imagem ${i}"
                 onerror="this.style.display='none'"
             >
 
@@ -24,7 +27,9 @@ async function carregarGaleria() {
         grade.appendChild(card);
     }
 
+    // =========================
     // IMAGENS ENVIADAS
+    // =========================
 
     try {
 
@@ -39,7 +44,10 @@ async function carregarGaleria() {
             card.className = "card-imagem";
 
             card.innerHTML = `
-                <img src="${API}/uploads/${foto.arquivo}">
+                <img 
+                    src="${API}/uploads/${foto.arquivo}"
+                    alt="${foto.estrutura}"
+                >
 
                 <h3>${foto.estrutura}</h3>
 
@@ -52,6 +60,6 @@ async function carregarGaleria() {
 
     } catch (erro) {
 
-        console.error(erro);
+        console.error("Erro ao carregar uploads:", erro);
     }
 }
