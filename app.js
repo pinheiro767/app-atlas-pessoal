@@ -1,272 +1,212 @@
-const API = window.location.origin;
-
+const API = "http://localhost:5000";
 
 function abrirAba(id) {
+    document.querySelectorAll(".aba").forEach(aba => aba.classList.remove("ativa"));
+    document.getElementById(id).classList.add("ativa");
 
-    document
-        .querySelectorAll(".aba")
-        .forEach(aba => {
-            aba.classList.remove("ativa");
-        });
-
-    document
-        .getElementById(id)
-        .classList.add("ativa");
-
-    if (id === "galeria") {
-        carregarGaleria();
-    }
-
-    if (id === "mapa") {
-        carregarMapaMental();
-    }
+    if (id === "mapa") carregarMapaMental();
 }
 
-
-async function carregarGaleria() {
-
+function carregarGaleria() {
     const grade = document.getElementById("grade-imagens");
+    grade.innerHTML = "";
 
-    grade.innerHTML = "Carregando...";
+    for (let i = 1; i <= 60; i++) {
+        const card = document.createElement("div");
+        card.className = "card-imagem";
 
-    try {
-
-        const resposta = await fetch(`${API}/fotos`);
-
-        const fotos = await resposta.json();
-
-        if (!fotos.length) {
-
-            grade.innerHTML = `
-                <div class="card-imagem">
-                    Nenhuma imagem encontrada.
-                </div>
-            `;
-
-            return;
-        }
-
-        grade.innerHTML = "";
-
-        fotos.reverse().forEach(foto => {
-
-            const card = document.createElement("div");
-
-            card.className = "card-imagem";
-
-            card.innerHTML = `
-                <img src="${API}/uploads/${foto.arquivo}">
-                <h3>${foto.estrutura}</h3>
-                <p>${foto.observacao || ""}</p>
-            `;
-
-            grade.appendChild(card);
-
-        });
-
-    } catch (erro) {
-
-        console.error(erro);
-
-        grade.innerHTML = `
-            <div class="card-imagem">
-                Erro ao carregar imagens.
-            </div>
+        card.innerHTML = `
+            <img src="assets/img/${i}.png" alt="Imagem anatômica ${i}">
+            <h3>Imagem ${i}</h3>
         `;
+
+        card.onclick = () => abrirImagem(`assets/img/${i}.png`, i);
+        grade.appendChild(card);
     }
 }
 
+function abrirImagem(src, numero) {
+    const janela = window.open("", "_blank");
+    janela.document.write(`
+        <html>
+        <head>
+            <title>Imagem ${numero}</title>
+            <style>
+                body {
+                    margin:0;
+                    background:#020617;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    height:100vh;
+                }
+                img {
+                    max-width:95%;
+                    max-height:95%;
+                    border-radius:20px;
+                    box-shadow:0 0 35px rgba(56,189,248,.6);
+                }
+            </style>
+        </head>
+        <body>
+            <img src="${src}">
+        </body>
+        </html>
+    `);
+}
 
-async function carregarMapaMental() {
+async function tocarAudio(chave) {
+    const player = document.getElementById("player");
+    player.src = `${API}/audio/${chave}`;
+    await player.play();
+}
 
-    const area = document.getElementById("mapa-mental");
+async function gerarAudioTexto() {
+    const texto = document.getElementById("texto-audio").value;
+    const lista = document.getElementById("lista-audios-texto");
 
-    area.innerHTML = "Carregando mapa mental...";
+    if (!texto.trim()) {
+        alert("Cole um texto primeiro.");
+        return;
+    }
+
+    lista.innerHTML = `<p>Gerando áudio do texto...</p>`;
 
     try {
+        const resposta = await fetch(`${API}/audio-texto`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ texto })
+        });
 
-        const resposta = await fetch(`${API}/mapa-mental`);
+        const dados = await resposta.json();
 
-        const mapa = await resposta.json();
-
-        if (!mapa.nos.length) {
-
-            area.innerHTML = `
-                <div class="no-mapa">
-                    Nenhuma estrutura ainda.
-                </div>
-            `;
-
+        if (!resposta.ok) {
+            lista.innerHTML = `<p>Erro: ${dados.erro || "não foi possível gerar o áudio."}</p>`;
             return;
         }
 
-        area.innerHTML = "";
+        lista.innerHTML = "";
 
-        mapa.nos.forEach(no => {
+        dados.partes.forEach((arquivo, index) => {
+            const bloco = document.createElement("div");
+            bloco.className = "no-mapa";
 
-            const div = document.createElement("div");
-
-            div.className = "no-mapa";
-
-            div.innerHTML = `
-                <strong>${no}</strong>
+            bloco.innerHTML = `
+                <p><strong>Parte ${index + 1}</strong></p>
+                <audio controls src="${API}/audio/${arquivo}"></audio>
             `;
 
-            area.appendChild(div);
-
+            lista.appendChild(bloco);
         });
 
     } catch (erro) {
-
+        lista.innerHTML = `<p>Erro ao conectar com o backend.</p>`;
         console.error(erro);
-
-        area.innerHTML = `
-            <div class="no-mapa">
-                Erro ao carregar mapa mental.
-            </div>
-        `;
     }
 }
 
+let streamCamera = null;
 
 async function abrirCamera() {
-
     const video = document.getElementById("video");
 
     try {
-
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: true
+        streamCamera = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" },
+            audio: false
         });
 
-        video.srcObject = stream;
+        video.srcObject = streamCamera;
 
     } catch (erro) {
-
-        alert("Erro ao abrir câmera.");
-
+        alert("Não foi possível abrir a câmera.");
         console.error(erro);
     }
 }
 
-
 function tirarFoto() {
-
     const video = document.getElementById("video");
     const canvas = document.getElementById("canvas");
+    const fotos = document.getElementById("fotos-salvas");
 
     if (!video.srcObject) {
         alert("Abra a câmera primeiro.");
         return;
     }
 
-    const estrutura = prompt(
-        "Qual estrutura anatômica?"
-    );
-
-    if (!estrutura) return;
-
-    const conexoes = prompt(
-        "Estruturas relacionadas separadas por vírgula"
-    );
-
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
     const ctx = canvas.getContext("2d");
-
-    ctx.drawImage(
-        video,
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     canvas.toBlob(async blob => {
+        const nome = `foto_${Date.now()}.png`;
 
         const formData = new FormData();
+        formData.append("foto", blob, nome);
+        formData.append("estrutura", "Foto anatômica de estudo");
+        formData.append("observacao", "Imagem capturada pela câmera");
 
-        formData.append(
-            "foto",
-            blob,
-            `foto_${Date.now()}.png`
-        );
+        await fetch(`${API}/upload-foto`, {
+            method: "POST",
+            body: formData
+        });
 
-        formData.append(
-            "estrutura",
-            estrutura
-        );
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(blob);
+        fotos.prepend(img);
 
-        formData.append(
-            "conexoes",
-            conexoes || ""
-        );
-
-        formData.append(
-            "observacao",
-            "Imagem anatômica"
-        );
-
-        try {
-
-            await fetch(`${API}/upload-foto`, {
-                method: "POST",
-                body: formData
-            });
-
-            alert("Foto enviada.");
-
-            carregarGaleria();
-
-            carregarMapaMental();
-
-        } catch (erro) {
-
-            console.error(erro);
-
-            alert("Erro ao enviar foto.");
-        }
+        carregarMapaMental();
 
     }, "image/png");
 }
 
+async function carregarMapaMental() {
+    const area = document.getElementById("mapa-mental");
+    area.innerHTML = "";
+
+    try {
+        const resposta = await fetch(`${API}/mapa-mental`);
+        const mapa = await resposta.json();
+
+        if (!mapa.nos || mapa.nos.length === 0) {
+            area.innerHTML = `<div class="no-mapa">Tire fotos para começar seu mapa mental</div>`;
+            return;
+        }
+
+        mapa.nos.forEach(no => {
+            const div = document.createElement("div");
+            div.className = "no-mapa";
+            div.textContent = no;
+            area.appendChild(div);
+        });
+
+    } catch (erro) {
+        area.innerHTML = `<div class="no-mapa">Backend não conectado</div>`;
+        console.error(erro);
+    }
+}
 
 async function enviarImagens() {
-
     const input = document.getElementById("input-imagens");
-
     const resultado = document.getElementById("resultado-upload");
 
     if (!input.files.length) {
-
-        resultado.innerHTML = `
-            <div class="erro-upload">
-                Selecione imagens.
-            </div>
-        `;
-
+        alert("Selecione uma ou mais imagens.");
         return;
     }
 
     const formData = new FormData();
 
-    for (let i = 0; i < input.files.length; i++) {
-
-        formData.append(
-            "imagens",
-            input.files[i]
-        );
+    for (const arquivo of input.files) {
+        formData.append("imagens", arquivo);
     }
 
-    resultado.innerHTML = `
-        <div class="carregando-upload">
-            Enviando imagens...
-        </div>
-    `;
-
     try {
-
         const resposta = await fetch(`${API}/receber-imagens`, {
             method: "POST",
             body: formData
@@ -274,98 +214,23 @@ async function enviarImagens() {
 
         const dados = await resposta.json();
 
-        console.log(dados);
-
         resultado.innerHTML = `
-            <div class="sucesso-upload">
-                ${dados.total} imagens enviadas com sucesso.
+            <div class="no-mapa">
+                ${dados.total} imagem(ns) recebida(s) com sucesso.
             </div>
         `;
 
-        carregarGaleria();
-
-        carregarMapaMental();
-
     } catch (erro) {
-
+        resultado.innerHTML = `<div class="no-mapa">Erro ao enviar imagens.</div>`;
         console.error(erro);
-
-        resultado.innerHTML = `
-            <div class="erro-upload">
-                Erro ao enviar imagens.
-            </div>
-        `;
     }
 }
 
-
-function tocarAudio(chave) {
-
-    const player = document.getElementById("player");
-
-    player.src = `${API}/audio/${chave}`;
-
-    player.play();
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js")
+        .then(() => console.log("Service Worker registrado"))
+        .catch(erro => console.error("Erro no Service Worker", erro));
 }
 
-
-async function gerarAudioTexto() {
-
-    const texto = document
-        .getElementById("texto-audio")
-        .value
-        .trim();
-
-    if (!texto) {
-        alert("Digite um texto.");
-        return;
-    }
-
-    try {
-
-        const resposta = await fetch(`${API}/audio-texto`, {
-
-            method: "POST",
-
-            headers: {
-                "Content-Type": "application/json"
-            },
-
-            body: JSON.stringify({
-                texto
-            })
-        });
-
-        const dados = await resposta.json();
-
-        const lista = document.getElementById("lista-audios-texto");
-
-        lista.innerHTML = "";
-
-        dados.partes.forEach(parte => {
-
-            const audio = document.createElement("audio");
-
-            audio.controls = true;
-
-            audio.src = `${API}/audio/${parte}`;
-
-            lista.appendChild(audio);
-
-        });
-
-    } catch (erro) {
-
-        console.error(erro);
-
-        alert("Erro ao gerar áudio.");
-    }
-}
-
-
-window.onload = () => {
-
-    carregarGaleria();
-
-    carregarMapaMental();
-};
+carregarGaleria();
+carregarMapaMental();
