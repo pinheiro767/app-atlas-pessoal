@@ -1,0 +1,24 @@
+{
+    "fotos": [
+        {
+            "id": "b15bc25ac3e14fdf8f9226d8562376ec",
+            "arquivo": "24aa5e5d33594f8fb5694a6128a87ee8.png",
+            "estrutura": "Foto anatômica de estudo",
+            "observacao": "Imagem capturada pela câmera",
+            "data": "2026-05-07 04:08:01"
+        }
+    ],
+    "mapa_mental": {
+        "titulo": "Mapa Mental Anatômico",
+        "nos": [
+            "Foto anatômica de estudo",
+            "Imagem capturada pela câmera"
+        ],
+        "conexoes": [
+            {
+                "de": "Foto anatômica de estudo",
+                "para": "Imagem capturada pela câmera"
+            }
+        ]
+    }
+}

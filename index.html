@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Anatomia Topográfica PWA</title>
+
+    <link rel="manifest" href="manifest.json">
+
+    <meta name="theme-color" content="#050816">
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <h1 class="logo">
+            ANATOMIA
+        </h1>
+
+        <button onclick="abrirAba('galeria')">
+            📚 Imagens
+        </button>
+
+        <button onclick="abrirAba('camera')">
+            📸 Câmera
+        </button>
+
+        <button onclick="abrirAba('mapa')">
+            🧠 Mapa Mental
+        </button>
+
+        <button onclick="abrirAba('audio')">
+            🔊 Áudios
+        </button>
+
+        <button onclick="abrirAba('upload')">
+            ⬆ Receber Imagens
+        </button>
+
+    </aside>
+
+
+    <!-- CONTEÚDO -->
+
+    <main class="conteudo">
+
+        <!-- TOPO -->
+
+        <header class="topbar">
+
+            <h2>
+                Anatomia Topográfica de MMSS
+            </h2>
+
+        </header>
+
+
+        <!-- GALERIA -->
+
+        <section id="galeria" class="aba ativa">
+
+            <div class="titulo-area">
+                <h2>Galeria Anatômica</h2>
+            </div>
+
+            <div id="grade-imagens" class="grade-imagens">
+            </div>
+
+        </section>
+
+
+        <!-- CAMERA -->
+
+        <section id="camera" class="aba">
+
+            <div class="titulo-area">
+                <h2>Câmera Anatômica</h2>
+            </div>
+
+            <video
+                id="video"
+                autoplay
+                playsinline
+            ></video>
+
+            <canvas id="canvas"></canvas>
+
+            <div class="botoes-camera">
+
+                <button onclick="abrirCamera()">
+                    Abrir câmera
+                </button>
+
+                <button onclick="tirarFoto()">
+                    Tirar Foto
+                </button>
+
+            </div>
+
+            <div
+                id="fotos-salvas"
+                class="fotos-salvas"
+            ></div>
+
+        </section>
+
+
+        <!-- MAPA MENTAL -->
+
+        <section id="mapa" class="aba">
+
+            <div class="titulo-area">
+                <h2>Mapa Mental Anatômico</h2>
+            </div>
+
+            <!-- FORMULÁRIO -->
+
+            <div class="form-mapa">
+
+                <input
+                    type="text"
+                    id="origem-mapa"
+                    placeholder="Ex: Plexo Braquial"
+                >
+
+                <input
+                    type="text"
+                    id="destino-mapa"
+                    placeholder="Ex: Artéria Axilar"
+                >
+
+                <button onclick="adicionarConexaoMapa()">
+                    Adicionar conexão
+                </button>
+
+            </div>
+
+            <!-- SVG DAS LINHAS -->
+
+            <svg
+                id="mapa-svg"
+                class="mapa-svg"
+            ></svg>
+
+            <!-- NÓS -->
+
+            <div
+                id="mapa-mental"
+                class="mapa-mental"
+            ></div>
+
+        </section>
+
+
+        <!-- AUDIO -->
+
+        <section id="audio" class="aba">
+
+            <div class="titulo-area">
+                <h2>Áudios Anatômicos</h2>
+            </div>
+
+            <div class="audio-grid">
+
+                <button onclick="tocarAudio('plexo_braquial')">
+                    Plexo Braquial
+                </button>
+
+                <button onclick="tocarAudio('linfonodos_axilares')">
+                    Linfonodos Axilares
+                </button>
+
+                <button onclick="tocarAudio('mao_compartimentos')">
+                    Compartimentos da Mão
+                </button>
+
+            </div>
+
+            <audio
+                id="player"
+                controls
+            ></audio>
+
+
+            <!-- LEITOR DE TEXTO -->
+
+            <div class="leitor-texto">
+
+                <h3>
+                    Leitor Anatômico Inteligente
+                </h3>
+
+                <textarea
+                    id="texto-audio"
+                    placeholder="Cole aqui textos grandes sobre nervos, músculos, linfonodos, plexo braquial, regiões anatômicas..."
+                ></textarea>
+
+                <button onclick="gerarAudioTexto()">
+                    🔊 Ler Texto Completo
+                </button>
+
+                <div id="lista-audios-texto"></div>
+
+            </div>
+
+        </section>
+
+
+        <!-- UPLOAD -->
+
+        <section id="upload" class="aba">
+
+            <div class="titulo-area">
+                <h2>Receber Imagens</h2>
+            </div>
+
+            <input
+                type="file"
+                id="input-imagens"
+                multiple
+                accept="image/*"
+            >
+
+            <button onclick="enviarImagens()">
+                Enviar Imagens
+            </button>
+
+            <div id="resultado-upload"></div>
+
+        </section>
+
+    </main>
+
+    <script src="app.js"></script>
+
+</body>
+</html>
