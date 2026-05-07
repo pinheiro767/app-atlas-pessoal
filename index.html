@@ -2,7 +2,6 @@
 <html lang="pt-br">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta
@@ -13,25 +12,22 @@
     <title>Anatomia Topográfica PWA</title>
 
     <link rel="manifest" href="manifest.json">
-
     <meta name="theme-color" content="#050816">
-
     <link rel="stylesheet" href="style.css">
-
 </head>
 
 <body>
 
-    <!-- SIDEBAR -->
-
     <aside class="sidebar">
 
-        <h1 class="logo">
-            ANATOMIA
-        </h1>
+        <h1 class="logo">ANATOMIA</h1>
 
         <button onclick="abrirAba('galeria')">
             📚 Imagens
+        </button>
+
+        <button onclick="abrirAba('slides')">
+            🎞️ Slides
         </button>
 
         <button onclick="abrirAba('camera')">
@@ -53,22 +49,12 @@
     </aside>
 
 
-    <!-- CONTEÚDO -->
-
     <main class="conteudo">
 
-        <!-- TOPO -->
-
         <header class="topbar">
-
-            <h2>
-                Anatomia Topográfica de MMSS
-            </h2>
-
+            <h2>Anatomia Topográfica de MMSS</h2>
         </header>
 
-
-        <!-- GALERIA -->
 
         <section id="galeria" class="aba ativa">
 
@@ -76,13 +62,59 @@
                 <h2>Galeria Anatômica</h2>
             </div>
 
-            <div id="grade-imagens" class="grade-imagens">
-            </div>
+            <div id="grade-imagens" class="grade-imagens"></div>
 
         </section>
 
 
-        <!-- CAMERA -->
+        <section id="slides" class="aba">
+
+            <div class="titulo-area">
+                <h2>Passador de Slides Anatômicos</h2>
+            </div>
+
+            <div class="slide-player">
+
+                <button onclick="slideAnterior()">
+                    ⬅ Anterior
+                </button>
+
+                <div class="slide-box">
+                    <img
+                        id="slide-img"
+                        src="/assets/img/1.png"
+                        alt="Slide anatômico"
+                    >
+
+                    <h3 id="slide-titulo">
+                        Imagem 1 / 120
+                    </h3>
+                </div>
+
+                <button onclick="proximoSlide()">
+                    Próximo ➡
+                </button>
+
+            </div>
+
+            <div class="slide-acoes">
+
+                <button onclick="abrirSlide(slideAtual)">
+                    🔍 Tela cheia
+                </button>
+
+                <button onclick="gerarMapaDaImagem(slideAtual)">
+                    🧠 Gerar mapa mental
+                </button>
+
+                <button onclick="lerImagem(slideAtual)">
+                    🔊 Áudio
+                </button>
+
+            </div>
+
+        </section>
+
 
         <section id="camera" class="aba">
 
@@ -118,15 +150,11 @@
         </section>
 
 
-        <!-- MAPA MENTAL -->
-
         <section id="mapa" class="aba">
 
             <div class="titulo-area">
                 <h2>Mapa Mental Anatômico</h2>
             </div>
-
-            <!-- FORMULÁRIO -->
 
             <div class="form-mapa">
 
@@ -148,14 +176,10 @@
 
             </div>
 
-            <!-- SVG DAS LINHAS -->
-
             <svg
                 id="mapa-svg"
                 class="mapa-svg"
             ></svg>
-
-            <!-- NÓS -->
 
             <div
                 id="mapa-mental"
@@ -164,8 +188,6 @@
 
         </section>
 
-
-        <!-- AUDIO -->
 
         <section id="audio" class="aba">
 
@@ -194,14 +216,9 @@
                 controls
             ></audio>
 
-
-            <!-- LEITOR DE TEXTO -->
-
             <div class="leitor-texto">
 
-                <h3>
-                    Leitor Anatômico Inteligente
-                </h3>
+                <h3>Leitor Anatômico Inteligente</h3>
 
                 <textarea
                     id="texto-audio"
@@ -218,8 +235,6 @@
 
         </section>
 
-
-        <!-- UPLOAD -->
 
         <section id="upload" class="aba">
 
