@@ -8,16 +8,99 @@
             "data": "2026-05-07 04:08:01"
         }
     ],
+
     "mapa_mental": {
         "titulo": "Mapa Mental Anatômico",
+
         "nos": [
+            "Imagens Recebidas",
+
             "Foto anatômica de estudo",
-            "Imagem capturada pela câmera"
+            "Imagem capturada pela câmera",
+
+            "Plexo Braquial",
+            "Artéria Axilar",
+            "Veia Axilar",
+            "Escaleno Anterior",
+            "Escaleno Médio",
+            "Clavícula",
+
+            "Linfonodos Axilares",
+            "Peitoral Menor",
+            "Subescapular",
+            "Úmero",
+
+            "Compartimentos da Mão",
+            "Polegar",
+            "Metacarpos",
+            "Aponeurose Palmar",
+            "Retináculo dos Flexores"
         ],
+
         "conexoes": [
             {
                 "de": "Foto anatômica de estudo",
                 "para": "Imagem capturada pela câmera"
+            },
+
+            {
+                "de": "Imagens Recebidas",
+                "para": "Foto anatômica de estudo"
+            },
+
+            {
+                "de": "Plexo Braquial",
+                "para": "Artéria Axilar"
+            },
+            {
+                "de": "Plexo Braquial",
+                "para": "Veia Axilar"
+            },
+            {
+                "de": "Plexo Braquial",
+                "para": "Escaleno Anterior"
+            },
+            {
+                "de": "Plexo Braquial",
+                "para": "Escaleno Médio"
+            },
+            {
+                "de": "Plexo Braquial",
+                "para": "Clavícula"
+            },
+
+            {
+                "de": "Linfonodos Axilares",
+                "para": "Peitoral Menor"
+            },
+            {
+                "de": "Linfonodos Axilares",
+                "para": "Subescapular"
+            },
+            {
+                "de": "Linfonodos Axilares",
+                "para": "Úmero"
+            },
+            {
+                "de": "Linfonodos Axilares",
+                "para": "Veia Axilar"
+            },
+
+            {
+                "de": "Compartimentos da Mão",
+                "para": "Polegar"
+            },
+            {
+                "de": "Compartimentos da Mão",
+                "para": "Metacarpos"
+            },
+            {
+                "de": "Compartimentos da Mão",
+                "para": "Aponeurose Palmar"
+            },
+            {
+                "de": "Compartimentos da Mão",
+                "para": "Retináculo dos Flexores"
             }
         ]
     }
