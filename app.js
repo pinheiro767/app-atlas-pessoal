@@ -13,18 +13,22 @@ function abrirAba(id) {
         aba.classList.remove("ativa");
     });
 
-    document.getElementById(id).classList.add("ativa");
+    const aba = document.getElementById(id);
+    if (aba) aba.classList.add("ativa");
 
     if (id === "galeria") carregarGaleria();
     if (id === "mapa") carregarMapaMental();
+    if (id === "slides") atualizarSlideNormal();
 }
 
 // =====================
-// GALERIA 1.png até 120.png
+// GALERIA
 // =====================
 
 async function carregarGaleria() {
     const grade = document.getElementById("grade-imagens");
+    if (!grade) return;
+
     grade.innerHTML = "";
 
     for (let i = 1; i <= TOTAL_IMAGENS; i++) {
@@ -33,7 +37,7 @@ async function carregarGaleria() {
 
         card.innerHTML = `
             <img 
-                src="${API}/assets/img/${i}.png"
+                src="/assets/img/${i}.png"
                 alt="Imagem ${i}"
                 onclick="abrirSlide(${i})"
                 onerror="this.parentElement.style.display='none'"
@@ -69,7 +73,21 @@ async function carregarGaleria() {
 }
 
 // =====================
-// SLIDES EM TELA CHEIA
+// SLIDES NORMAL
+// =====================
+
+function atualizarSlideNormal() {
+    const img = document.getElementById("slide-img");
+    const titulo = document.getElementById("slide-titulo");
+
+    if (!img || !titulo) return;
+
+    img.src = `/assets/img/${slideAtual}.png`;
+    titulo.innerText = `Imagem ${slideAtual} / ${TOTAL_IMAGENS}`;
+}
+
+// =====================
+// SLIDES TELA CHEIA
 // =====================
 
 function abrirSlide(numero) {
@@ -108,25 +126,41 @@ function abrirSlide(numero) {
 }
 
 function atualizarSlide() {
-    document.getElementById("imagem-slide").src = `${API}/assets/img/${slideAtual}.png`;
-    document.getElementById("contador-slide").innerText = `Imagem ${slideAtual} / ${TOTAL_IMAGENS}`;
+    const img = document.getElementById("imagem-slide");
+    const contador = document.getElementById("contador-slide");
+
+    if (img) img.src = `/assets/img/${slideAtual}.png`;
+    if (contador) contador.innerText = `Imagem ${slideAtual} / ${TOTAL_IMAGENS}`;
+
+    atualizarSlideNormal();
 }
 
 function proximoSlide() {
     slideAtual++;
-    if (slideAtual > TOTAL_IMAGENS) slideAtual = 1;
+
+    if (slideAtual > TOTAL_IMAGENS) {
+        slideAtual = 1;
+    }
+
     atualizarSlide();
 }
 
 function slideAnterior() {
     slideAtual--;
-    if (slideAtual < 1) slideAtual = TOTAL_IMAGENS;
+
+    if (slideAtual < 1) {
+        slideAtual = TOTAL_IMAGENS;
+    }
+
     atualizarSlide();
 }
 
 function fecharSlide() {
     const visor = document.getElementById("visor-slides");
-    if (visor) visor.style.display = "none";
+
+    if (visor) {
+        visor.style.display = "none";
+    }
 
     modoSlidesAtivo = false;
 
@@ -148,9 +182,7 @@ document.addEventListener("keydown", event => {
 // =====================
 
 async function gerarMapaDaImagem(numero) {
-    const estrutura = prompt(
-        `Qual estrutura principal aparece na imagem ${numero}?`
-    );
+    const estrutura = prompt(`Qual estrutura principal aparece na imagem ${numero}?`);
 
     if (!estrutura) return;
 
@@ -165,7 +197,7 @@ async function gerarMapaDaImagem(numero) {
         },
         body: JSON.stringify({
             origem: `Imagem ${numero}: ${estrutura}`,
-            destino: conexoes || "Estrutura anatômica"
+            destino: "Imagem anatômica"
         })
     });
 
@@ -191,6 +223,32 @@ async function gerarMapaDaImagem(numero) {
     }
 
     alert("Mapa mental atualizado.");
+    carregarMapaMental();
+}
+
+async function adicionarConexaoMapa() {
+    const origem = document.getElementById("origem-mapa")?.value.trim();
+    const destino = document.getElementById("destino-mapa")?.value.trim();
+
+    if (!origem || !destino) {
+        alert("Preencha origem e destino.");
+        return;
+    }
+
+    await fetch(`${API}/mapa-mental/adicionar`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            origem,
+            destino
+        })
+    });
+
+    document.getElementById("origem-mapa").value = "";
+    document.getElementById("destino-mapa").value = "";
+
     carregarMapaMental();
 }
 
@@ -234,9 +292,7 @@ async function carregarMapaMental() {
 // =====================
 
 async function lerImagem(numero) {
-    const texto = prompt(
-        `Digite o texto que deseja ouvir para a imagem ${numero}:`
-    );
+    const texto = prompt(`Digite o texto que deseja ouvir para a imagem ${numero}:`);
 
     if (!texto) return;
 
@@ -245,12 +301,14 @@ async function lerImagem(numero) {
 
 function tocarAudio(chave) {
     const player = document.getElementById("player");
+    if (!player) return;
+
     player.src = `${API}/audio/${chave}`;
     player.play();
 }
 
 async function gerarAudioTexto() {
-    const texto = document.getElementById("texto-audio").value.trim();
+    const texto = document.getElementById("texto-audio")?.value.trim();
 
     if (!texto) {
         alert("Digite ou cole um texto.");
@@ -324,7 +382,7 @@ function tirarFoto() {
     const video = document.getElementById("video");
     const canvas = document.getElementById("canvas");
 
-    if (!video.srcObject) {
+    if (!video || !canvas || !video.srcObject) {
         alert("Abra a câmera primeiro.");
         return;
     }
@@ -368,8 +426,8 @@ async function enviarImagens() {
     const input = document.getElementById("input-imagens");
     const resultado = document.getElementById("resultado-upload");
 
-    if (!input.files.length) {
-        resultado.innerHTML = "Selecione imagens.";
+    if (!input || !input.files.length) {
+        if (resultado) resultado.innerHTML = "Selecione imagens.";
         return;
     }
 
@@ -379,7 +437,7 @@ async function enviarImagens() {
         formData.append("imagens", arquivo);
     }
 
-    resultado.innerHTML = "Enviando imagens...";
+    if (resultado) resultado.innerHTML = "Enviando imagens...";
 
     try {
         const resposta = await fetch(`${API}/receber-imagens`, {
@@ -389,14 +447,19 @@ async function enviarImagens() {
 
         const dados = await resposta.json();
 
-        resultado.innerHTML = `${dados.total} imagens enviadas com sucesso.`;
+        if (resultado) {
+            resultado.innerHTML = `${dados.total} imagens enviadas com sucesso.`;
+        }
 
         carregarGaleria();
         carregarMapaMental();
 
     } catch (erro) {
         console.error(erro);
-        resultado.innerHTML = "Erro ao enviar imagens.";
+
+        if (resultado) {
+            resultado.innerHTML = "Erro ao enviar imagens.";
+        }
     }
 }
 
@@ -407,44 +470,5 @@ async function enviarImagens() {
 window.onload = () => {
     carregarGaleria();
     carregarMapaMental();
+    atualizarSlideNormal();
 };
-let slideAtual = 1;
-const TOTAL_IMAGENS = 120;
-
-function atualizarSlideNormal() {
-    const img = document.getElementById("slide-img");
-    const titulo = document.getElementById("slide-titulo");
-
-    if (!img || !titulo) return;
-
-    img.src = `${API}/assets/img/${slideAtual}.png`;
-    titulo.innerText = `Imagem ${slideAtual} / ${TOTAL_IMAGENS}`;
-}
-
-function proximoSlide() {
-    slideAtual++;
-
-    if (slideAtual > TOTAL_IMAGENS) {
-        slideAtual = 1;
-    }
-
-    atualizarSlideNormal();
-
-    if (document.getElementById("imagem-slide")) {
-        atualizarSlide();
-    }
-}
-
-function slideAnterior() {
-    slideAtual--;
-
-    if (slideAtual < 1) {
-        slideAtual = TOTAL_IMAGENS;
-    }
-
-    atualizarSlideNormal();
-
-    if (document.getElementById("imagem-slide")) {
-        atualizarSlide();
-    }
-}
