@@ -1,171 +1,259 @@
-/* =========================
-   VISOR DE SLIDES
-========================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
+html, body {
+    width: 100%;
+    min-height: 100%;
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: white;
+    background:
+        radial-gradient(circle at top left, rgba(14,165,233,0.35), transparent 35%),
+        radial-gradient(circle at bottom right, rgba(99,102,241,0.30), transparent 35%),
+        linear-gradient(135deg, #020617, #0f172a, #111827);
+}
+
+body {
+    display: flex;
+}
+
+.sidebar {
+    width: 250px;
+    min-height: 100vh;
+    padding: 24px 18px;
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(16px);
+    border-right: 1px solid rgba(255,255,255,0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.logo {
+    text-align: center;
+    font-size: 30px;
+    font-weight: 900;
+    color: #38bdf8;
+    margin-bottom: 16px;
+}
+
+.sidebar button,
+button {
+    border: none;
+    padding: 14px 18px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #0ea5e9, #2563eb);
+    color: white;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 0 18px rgba(14,165,233,0.30);
+}
+
+.conteudo {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    height: 100vh;
+}
+
+.topbar {
+    padding: 20px;
+    border-radius: 24px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    margin-bottom: 24px;
+}
+
+.aba {
+    display: none;
+}
+
+.aba.ativa {
+    display: block;
+}
+
+.titulo-area {
+    margin-bottom: 20px;
+}
+
+.grade-imagens {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.card-imagem {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 22px;
+    padding: 14px;
+    text-align: center;
+    backdrop-filter: blur(12px);
+}
+
+.card-imagem img {
+    width: 100%;
+    height: 240px;
+    object-fit: contain;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.95);
+    cursor: pointer;
+}
+
+.card-imagem h3 {
+    margin: 12px 0;
+}
+
+.form-mapa {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.form-mapa input,
+textarea,
+input[type="file"] {
+    padding: 14px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.08);
+    color: white;
+    font-size: 16px;
+}
+
+.form-mapa input {
+    flex: 1;
+    min-width: 220px;
+}
+
+.mapa-mental {
+    min-height: 420px;
+    padding: 28px;
+    border-radius: 28px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+}
+
+.no-mapa {
+    padding: 16px 20px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #0ea5e9, #2563eb);
+    box-shadow: 0 0 18px rgba(14,165,233,0.35);
+}
+
+#video {
+    width: 100%;
+    max-height: 520px;
+    border-radius: 24px;
+    background: black;
+}
+
+#canvas {
+    display: none;
+}
+
+.botoes-camera,
+.audio-grid,
+.slide-acoes {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin: 18px 0;
+}
+
+.leitor-texto {
+    margin-top: 24px;
+}
+
+.leitor-texto textarea {
+    width: 100%;
+    min-height: 180px;
+    margin: 14px 0;
+}
+
+.slide-player {
+    display: grid;
+    grid-template-columns: 160px 1fr 160px;
+    gap: 20px;
+    align-items: center;
+}
+
+.slide-box {
+    min-height: 560px;
+    padding: 22px;
+    border-radius: 28px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.slide-box img {
+    max-width: 100%;
+    max-height: 500px;
+    object-fit: contain;
+    border-radius: 20px;
+    background: white;
+}
+
+.slide-box h3 {
+    margin-top: 16px;
+}
+
+/* VISOR DE SLIDES */
 .visor-slides {
-
     position: fixed;
     inset: 0;
-
     width: 100vw;
     height: 100vh;
-
     background:
-        radial-gradient(
-            circle at top,
-            rgba(14,165,233,0.18),
-            transparent 30%
-        ),
-        linear-gradient(
-            135deg,
-            #020617,
-            #0f172a,
-            #111827
-        );
-
+        radial-gradient(circle at top, rgba(14,165,233,0.18), transparent 30%),
+        linear-gradient(135deg, #020617, #0f172a, #111827);
     backdrop-filter: blur(12px);
-
     z-index: 99999;
-
     display: none;
-
     align-items: center;
     justify-content: center;
-
     overflow: hidden;
-
-    animation: fadeSlide 0.4s ease;
 }
-
-
-/* =========================
-   IMAGEM
-========================= */
 
 .visor-slides img {
-
     max-width: 92vw;
     max-height: 82vh;
-
     object-fit: contain;
-
     border-radius: 26px;
-
-    border:
-        2px solid rgba(255,255,255,0.08);
-
-    box-shadow:
-        0 0 45px rgba(56,189,248,0.45),
-        0 0 90px rgba(37,99,235,0.18);
-
-    transition: 0.3s;
+    background: white;
+    box-shadow: 0 0 45px rgba(56,189,248,0.45);
 }
-
-
-/* =========================
-   FECHAR
-========================= */
 
 .fechar-slide {
-
     position: absolute;
-
     top: 20px;
     right: 25px;
-
     width: 55px;
     height: 55px;
-
-    border: none;
-
     border-radius: 18px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #ef4444,
-            #dc2626
-        );
-
-    color: white;
-
+    background: linear-gradient(135deg, #ef4444, #dc2626);
     font-size: 24px;
-    font-weight: 900;
-
-    cursor: pointer;
-
-    transition: 0.3s;
-
-    box-shadow:
-        0 0 20px rgba(239,68,68,0.4);
 }
-
-.fechar-slide:hover {
-
-    transform:
-        scale(1.08);
-
-    box-shadow:
-        0 0 28px rgba(239,68,68,0.65);
-}
-
-
-/* =========================
-   NAVEGAÇÃO
-========================= */
 
 .nav-slide {
-
     position: absolute;
-
     top: 50%;
-
     transform: translateY(-50%);
-
-    width: 90px;
-    height: 90px;
-
-    border: none;
-
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
-
-    background:
-        rgba(255,255,255,0.08);
-
-    backdrop-filter: blur(10px);
-
-    color: white;
-
-    font-size: 52px;
-    font-weight: 900;
-
-    cursor: pointer;
-
-    transition: 0.3s;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    box-shadow:
-        0 0 18px rgba(0,0,0,0.3);
-}
-
-.nav-slide:hover {
-
-    transform:
-        translateY(-50%)
-        scale(1.08);
-
-    background:
-        linear-gradient(
-            135deg,
-            #0ea5e9,
-            #2563eb
-        );
-
-    box-shadow:
-        0 0 28px rgba(14,165,233,0.45);
+    background: rgba(255,255,255,0.10);
+    font-size: 48px;
 }
 
 .nav-slide.esquerda {
@@ -176,154 +264,69 @@
     right: 22px;
 }
 
-
-/* =========================
-   BARRA INFERIOR
-========================= */
-
 .barra-slide {
-
     position: absolute;
-
     bottom: 22px;
     left: 50%;
-
     transform: translateX(-50%);
-
-    background:
-        rgba(255,255,255,0.08);
-
+    background: rgba(255,255,255,0.10);
     backdrop-filter: blur(14px);
-
-    border:
-        1px solid rgba(255,255,255,0.08);
-
     padding: 16px 22px;
-
     border-radius: 24px;
-
     display: flex;
     gap: 14px;
     align-items: center;
     flex-wrap: wrap;
     justify-content: center;
-
-    color: white;
-
-    box-shadow:
-        0 0 24px rgba(0,0,0,0.3);
-}
-
-
-/* =========================
-   BOTÕES
-========================= */
-
-.barra-slide button,
-.card-imagem button {
-
-    border: none;
-
-    padding: 12px 18px;
-
-    border-radius: 16px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #0ea5e9,
-            #2563eb
-        );
-
-    color: white;
-
-    font-weight: 800;
-    font-size: 15px;
-
-    cursor: pointer;
-
-    transition: 0.3s;
-
-    box-shadow:
-        0 0 18px rgba(14,165,233,0.35);
-}
-
-.barra-slide button:hover,
-.card-imagem button:hover {
-
-    transform:
-        scale(1.05);
-
-    box-shadow:
-        0 0 28px rgba(14,165,233,0.55);
 }
 
 .card-imagem button {
     margin: 6px;
+    padding: 10px 12px;
 }
-
-
-/* =========================
-   ANIMAÇÃO
-========================= */
-
-@keyframes fadeSlide {
-
-    from {
-        opacity: 0;
-        transform: scale(1.03);
-    }
-
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-
-/* =========================
-   RESPONSIVO
-========================= */
 
 @media(max-width: 900px) {
+    body {
+        flex-direction: column;
+    }
 
-    .nav-slide {
+    .sidebar {
+        width: 100%;
+        min-height: auto;
+        flex-direction: row;
+        overflow-x: auto;
+    }
 
-        width: 70px;
-        height: 70px;
+    .sidebar button {
+        min-width: 160px;
+    }
 
-        font-size: 38px;
+    .conteudo {
+        height: auto;
+    }
+
+    .slide-player {
+        grid-template-columns: 1fr;
+    }
+
+    .slide-box {
+        min-height: 420px;
+    }
+}
+
+@media(max-width: 600px) {
+    .card-imagem img {
+        height: 190px;
     }
 
     .visor-slides img {
-
         max-width: 96vw;
-        max-height: 72vh;
+        max-height: 64vh;
     }
-
-    .barra-slide {
-
-        width: calc(100% - 20px);
-
-        bottom: 12px;
-
-        padding: 14px;
-    }
-
-    .barra-slide button {
-
-        width: 100%;
-    }
-}
-
-
-@media(max-width: 600px) {
 
     .nav-slide {
-
         width: 58px;
         height: 58px;
-
         font-size: 30px;
     }
 
@@ -335,19 +338,12 @@
         right: 8px;
     }
 
-    .fechar-slide {
-
-        width: 48px;
-        height: 48px;
-
-        font-size: 20px;
-
-        top: 12px;
-        right: 12px;
+    .barra-slide {
+        width: calc(100% - 20px);
+        bottom: 12px;
     }
 
-    .visor-slides img {
-
-        max-height: 64vh;
+    .barra-slide button {
+        width: 100%;
     }
 }
