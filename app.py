@@ -12,12 +12,10 @@ from gtts import gTTS
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
-MAPAS_DIR = os.path.join(BASE_DIR, "mapas")
 AUDIOS_DIR = os.path.join(BASE_DIR, "audios")
 DATA_FILE = os.path.join(BASE_DIR, "dados_estudo.json")
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
-os.makedirs(MAPAS_DIR, exist_ok=True)
 os.makedirs(AUDIOS_DIR, exist_ok=True)
 
 app = Flask(__name__)
@@ -31,10 +29,9 @@ ESTRUTURAS = {
         "titulo": "Plexo Braquial",
         "categoria": "Sistema Nervoso",
         "explicacao": (
-            "O plexo braquial deve ser localizado na região cervical lateral e axilar. "
-            "Procure primeiro os músculos escalenos anterior e médio. As raízes C5, C6, C7, C8 e T1 "
-            "emergem entre esses músculos, formam troncos acima da clavícula, divisões atrás da clavícula "
-            "e fascículos ao redor da artéria axilar."
+            "O plexo braquial localiza-se na região cervical lateral e axilar. "
+            "Procure os músculos escalenos anterior e médio. As raízes C5, C6, C7, C8 e T1 "
+            "emergem entre esses músculos, passam acima da clavícula e seguem para a axila."
         ),
         "relacoes": [
             "Escaleno anterior",
@@ -45,15 +42,13 @@ ESTRUTURAS = {
         ],
         "memoria": "Plexo passa no vão dos escalenos e abraça a artéria axilar."
     },
-
     "linfonodos_axilares": {
         "titulo": "Linfonodos Axilares",
         "categoria": "Sistema Linfático",
         "explicacao": (
-            "Os linfonodos axilares são encontrados dentro da gordura da axila, acompanhando vasos. "
-            "Para localizá-los, identifique primeiro a veia axilar. Os peitorais ficam na parede anterior, "
-            "os subescapulares na parede posterior, os umerais na parede lateral, os centrais no centro "
-            "da axila e os apicais no ápice, próximos à clavícula."
+            "Os linfonodos axilares ficam na gordura da axila, acompanhando vasos. "
+            "Os peitorais ficam na parede anterior, os subescapulares na parede posterior, "
+            "os umerais na parede lateral, os centrais no centro e os apicais no ápice."
         ),
         "relacoes": [
             "Veia axilar",
@@ -65,14 +60,13 @@ ESTRUTURAS = {
         ],
         "memoria": "Anterior é peitoral, posterior é subescapular, lateral é umeral, centro é central e ápice é apical."
     },
-
     "mao_compartimentos": {
         "titulo": "Compartimentos da Mão",
         "categoria": "Regiões Corporais",
         "explicacao": (
-            "Na mão, oriente primeiro a palma, o dorso, o lado radial e o lado ulnar. "
+            "Na mão, oriente a palma, o dorso, o lado radial e o lado ulnar. "
             "A região tenar fica na base do polegar, a hipotenar na base do dedo mínimo, "
-            "o compartimento central fica no centro da palma e os interósseos ficam entre os metacarpos."
+            "o compartimento central fica no centro da palma e os interósseos entre os metacarpos."
         ),
         "relacoes": [
             "Polegar",
@@ -101,8 +95,18 @@ def carregar_dados():
             }
         }
 
-    with open(DATA_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {
+            "fotos": [],
+            "mapa_mental": {
+                "titulo": "Mapa Mental Anatômico",
+                "nos": [],
+                "conexoes": []
+            }
+        }
 
 
 def salvar_dados(dados):
@@ -110,8 +114,34 @@ def salvar_dados(dados):
         json.dump(dados, f, ensure_ascii=False, indent=4)
 
 
+def adicionar_no(mapa, nome):
+    if nome and nome not in mapa["nos"]:
+        mapa["nos"].append(nome)
+
+
+def adicionar_conexao(mapa, origem, destino):
+    if not origem or not destino:
+        return
+
+    adicionar_no(mapa, origem)
+    adicionar_no(mapa, destino)
+
+    conexao = {
+        "de": origem,
+        "para": destino
+    }
+
+    if conexao not in mapa["conexoes"]:
+        mapa["conexoes"].append(conexao)
+
+
 @app.route("/")
 def home():
+    return send_from_directory(BASE_DIR, "index.html")
+
+
+@app.route("/health")
+def health():
     return jsonify({
         "status": "online",
         "app": "Anatomia Topográfica PWA",
@@ -175,10 +205,10 @@ def gerar_audio_texto():
         return jsonify({"erro": "Texto vazio."}), 400
 
     limite = 4000
-    partes = []
-
-    for i in range(0, len(texto), limite):
-        partes.append(texto[i:i + limite])
+    partes = [
+        texto[i:i + limite]
+        for i in range(0, len(texto), limite)
+    ]
 
     arquivos = []
 
@@ -199,161 +229,20 @@ def gerar_audio_texto():
 
 @app.route("/upload-foto", methods=["POST"])
 def upload_foto():
-
-    if "foto" not in request.files:
-        return jsonify({
-            "erro": "Nenhuma foto enviada."
-        }), 400
-
-    foto = request.files["foto"]
-
-    estrutura = request.form.get(
-        "estrutura",
-        "Estrutura Anatômica"
-    )
-
-    observacao = request.form.get(
-        "observacao",
-        ""
-    )
-
-    conexoes = request.form.get(
-        "conexoes",
-        ""
-    )
-
-    if foto.filename == "":
-        return jsonify({
-            "erro": "Nome do arquivo vazio."
-        }), 400
-
-    if not allowed_file(foto.filename):
-        return jsonify({
-            "erro": "Formato não permitido."
-        }), 400
-
-    filename = secure_filename(foto.filename)
-
-    extensao = filename.rsplit(".", 1)[1].lower()
-
-    novo_nome = f"{uuid.uuid4().hex}.{extensao}"
-
-    caminho = os.path.join(
-        UPLOAD_DIR,
-        novo_nome
-    )
-
-    foto.save(caminho)
-
-    dados = carregar_dados()
-
-    registro = {
-        "id": uuid.uuid4().hex,
-        "arquivo": novo_nome,
-        "estrutura": estrutura,
-        "observacao": observacao,
-        "data": datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
-    }
-
-    dados["fotos"].append(registro)
-
-    mapa = dados["mapa_mental"]
-
-    # ADICIONA NÓ PRINCIPAL
-
-    if estrutura not in mapa["nos"]:
-        mapa["nos"].append(estrutura)
-
-    # OBSERVAÇÃO
-
-    if observacao:
-
-        if observacao not in mapa["nos"]:
-            mapa["nos"].append(observacao)
-
-        mapa["conexoes"].append({
-            "de": estrutura,
-            "para": observacao
-        })
-
-    # CONEXÕES AUTOMÁTICAS
-
-    if conexoes:
-
-        lista_conexoes = [
-            item.strip()
-            for item in conexoes.split(",")
-            if item.strip()
-        ]
-
-        for conexao in lista_conexoes:
-
-            if conexao not in mapa["nos"]:
-                mapa["nos"].append(conexao)
-
-            mapa["conexoes"].append({
-                "de": estrutura,
-                "para": conexao
-            })
-
-    # CONEXÕES PADRÃO AUTOMÁTICAS
-
-    conexoes_automaticas = {
-        "Plexo Braquial": [
-            "Artéria Axilar",
-            "Escaleno Anterior",
-            "Escaleno Médio",
-            "Clavícula"
-        ],
-
-        "Linfonodos Axilares": [
-            "Veia Axilar",
-            "Peitoral Menor",
-            "Subescapular",
-            "Úmero"
-        ],
-
-        "Compartimentos da Mão": [
-            "Polegar",
-            "Metacarpos",
-            "Aponeurose Palmar",
-            "Retináculo dos Flexores"
-        ]
-    }
-
-    if estrutura in conexoes_automaticas:
-
-        for conexao in conexoes_automaticas[estrutura]:
-
-            if conexao not in mapa["nos"]:
-                mapa["nos"].append(conexao)
-
-            mapa["conexoes"].append({
-                "de": estrutura,
-                "para": conexao
-            })
-
-    salvar_dados(dados)
-
-    return jsonify({
-        "mensagem": "Foto enviada e mapa mental atualizado.",
-        "registro": registro,
-        "mapa_mental": mapa
-    })
     if "foto" not in request.files:
         return jsonify({"erro": "Nenhuma foto enviada."}), 400
 
     foto = request.files["foto"]
-    estrutura = request.form.get("estrutura", "estrutura_nao_informada")
-    observacao = request.form.get("observacao", "")
+
+    estrutura = request.form.get("estrutura", "Estrutura Anatômica").strip()
+    observacao = request.form.get("observacao", "").strip()
+    conexoes = request.form.get("conexoes", "").strip()
 
     if foto.filename == "":
-        return jsonify({"erro": "Nome de arquivo vazio."}), 400
+        return jsonify({"erro": "Nome do arquivo vazio."}), 400
 
     if not allowed_file(foto.filename):
-        return jsonify({"erro": "Formato de imagem não permitido."}), 400
+        return jsonify({"erro": "Formato não permitido."}), 400
 
     filename = secure_filename(foto.filename)
     extensao = filename.rsplit(".", 1)[1].lower()
@@ -363,6 +252,7 @@ def upload_foto():
     foto.save(caminho)
 
     dados = carregar_dados()
+    mapa = dados["mapa_mental"]
 
     registro = {
         "id": uuid.uuid4().hex,
@@ -374,23 +264,52 @@ def upload_foto():
 
     dados["fotos"].append(registro)
 
-    mapa = dados["mapa_mental"]
+    adicionar_no(mapa, estrutura)
 
-    if estrutura not in mapa["nos"]:
-        mapa["nos"].append(estrutura)
+    if observacao:
+        adicionar_conexao(mapa, estrutura, observacao)
 
-    if observacao and observacao not in mapa["nos"]:
-        mapa["nos"].append(observacao)
-        mapa["conexoes"].append({
-            "de": estrutura,
-            "para": observacao
-        })
+    if conexoes:
+        lista_conexoes = [
+            item.strip()
+            for item in conexoes.split(",")
+            if item.strip()
+        ]
+
+        for conexao in lista_conexoes:
+            adicionar_conexao(mapa, estrutura, conexao)
+
+    conexoes_automaticas = {
+        "Plexo Braquial": [
+            "Artéria Axilar",
+            "Escaleno Anterior",
+            "Escaleno Médio",
+            "Clavícula"
+        ],
+        "Linfonodos Axilares": [
+            "Veia Axilar",
+            "Peitoral Menor",
+            "Subescapular",
+            "Úmero"
+        ],
+        "Compartimentos da Mão": [
+            "Polegar",
+            "Metacarpos",
+            "Aponeurose Palmar",
+            "Retináculo dos Flexores"
+        ]
+    }
+
+    if estrutura in conexoes_automaticas:
+        for conexao in conexoes_automaticas[estrutura]:
+            adicionar_conexao(mapa, estrutura, conexao)
 
     salvar_dados(dados)
 
     return jsonify({
-        "mensagem": "Foto enviada e adicionada ao mapa mental.",
-        "registro": registro
+        "mensagem": "Foto enviada e mapa mental atualizado.",
+        "registro": registro,
+        "mapa_mental": mapa
     })
 
 
@@ -418,8 +337,8 @@ def adicionar_mapa_mental():
     if not data:
         return jsonify({"erro": "Nenhum dado recebido."}), 400
 
-    origem = data.get("origem")
-    destino = data.get("destino")
+    origem = data.get("origem", "").strip()
+    destino = data.get("destino", "").strip()
 
     if not origem or not destino:
         return jsonify({"erro": "Informe origem e destino."}), 400
@@ -427,16 +346,7 @@ def adicionar_mapa_mental():
     dados = carregar_dados()
     mapa = dados["mapa_mental"]
 
-    if origem not in mapa["nos"]:
-        mapa["nos"].append(origem)
-
-    if destino not in mapa["nos"]:
-        mapa["nos"].append(destino)
-
-    mapa["conexoes"].append({
-        "de": origem,
-        "para": destino
-    })
+    adicionar_conexao(mapa, origem, destino)
 
     salvar_dados(dados)
 
@@ -454,23 +364,36 @@ def receber_imagens():
     arquivos = request.files.getlist("imagens")
     salvos = []
 
+    dados = carregar_dados()
+    mapa = dados["mapa_mental"]
+
     for arquivo in arquivos:
         if arquivo and allowed_file(arquivo.filename):
             filename = secure_filename(arquivo.filename)
             extensao = filename.rsplit(".", 1)[1].lower()
             novo_nome = f"{uuid.uuid4().hex}.{extensao}"
             caminho = os.path.join(UPLOAD_DIR, novo_nome)
+
             arquivo.save(caminho)
+
+            nome_estrutura = os.path.splitext(filename)[0]
 
             salvos.append({
                 "arquivo_original": filename,
-                "arquivo_salvo": novo_nome
+                "arquivo_salvo": novo_nome,
+                "estrutura": nome_estrutura
             })
+
+            adicionar_no(mapa, nome_estrutura)
+            adicionar_conexao(mapa, "Imagens Recebidas", nome_estrutura)
+
+    salvar_dados(dados)
 
     return jsonify({
         "mensagem": "Imagens recebidas com sucesso.",
         "total": len(salvos),
-        "imagens": salvos
+        "imagens": salvos,
+        "mapa_mental": mapa
     })
 
 
@@ -488,6 +411,11 @@ def limpar_estudo():
     salvar_dados(dados)
 
     return jsonify({"mensagem": "Dados de estudo apagados."})
+
+
+@app.route("/<path:path>")
+def servir_frontend(path):
+    return send_from_directory(BASE_DIR, path)
 
 
 if __name__ == "__main__":
